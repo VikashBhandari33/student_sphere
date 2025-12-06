@@ -19,6 +19,11 @@ dependencies:
   firebase_crashlytics: ^4.1.3
   firebase_analytics: ^11.3.3
 
+  # Google APIs & Auth
+  google_sign_in: ^6.2.1
+  googleapis: ^13.1.0
+  extension_google_sign_in_as_googleapis_auth: ^2.0.12
+
   # State Management
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
@@ -64,9 +69,27 @@ dev_dependencies:
   freezed: ^2.5.7
   json_serializable: ^6.9.0
   mocktail: ^1.0.4
+  flutter_launcher_icons: ^0.13.1
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/Logo.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/icon/Logo.png"
+    background_color: "#hex_code"
+    theme_color: "#hex_code"
+  windows:
+    generate: true
+    image_path: "assets/icon/Logo.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/icon/Logo.png"
 
 flutter:
   uses-material-design: true
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
+  assets:
+    - assets/icon/

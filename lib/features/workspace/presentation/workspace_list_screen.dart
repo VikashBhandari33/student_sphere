@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:student_sphere/features/workspace/domain/workspace_entity.dart';
 import 'package:student_sphere/features/workspace/presentation/workspace_controller.dart';
@@ -97,8 +98,7 @@ class _WorkspaceCard extends StatelessWidget {
         subtitle: Text(workspace.description),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: () {
-          // TODO: Navigate to Workspace Detail
-          // context.go('/home/workspaces/${workspace.id}');
+          context.go('/home/workspaces/${workspace.id}');
         },
       ),
     );

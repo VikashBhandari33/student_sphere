@@ -3,21 +3,55 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_sphere/features/timetable/domain/class_entity.dart';
 import 'package:student_sphere/features/timetable/presentation/timetable_controller.dart';
+import 'package:student_sphere/features/timetable/presentation/timetable_grid_view.dart';
+import 'package:student_sphere/features/timetable/presentation/timetable_settings.dart';
 
-class TimetableScreen extends ConsumerWidget {
+class TimetableScreen extends ConsumerStatefulWidget {
   const TimetableScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TimetableScreen> createState() => _TimetableScreenState();
+}
+
+class _TimetableScreenState extends ConsumerState<TimetableScreen> {
+  bool _isGridView = false;
+
+  @override
+  Widget build(BuildContext context) {
     final timetableState = ref.watch(timetableControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Timetable')),
+      appBar: AppBar(
+        title: const Text('Timetable'),
+        actions: [
+          IconButton(
+            icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
+            onPressed: () {
+              setState(() {
+                _isGridView = !_isGridView;
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.table_chart),
+            onPressed: () => context.go('/home/timetable/tables'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => _showSettingsDialog(context, ref),
+          ),
+        ],
+      ),
       body: timetableState.when(
         data: (classes) {
           if (classes.isEmpty) {
             return const Center(child: Text('No classes added yet.'));
           }
+
+          if (_isGridView) {
+            return TimetableGridView(classes: classes);
+          }
+
           // Group classes by day
           final groupedClasses = <int, List<ClassEntity>>{};
           for (var c in classes) {
@@ -87,6 +121,83 @@ class TimetableScreen extends ConsumerWidget {
       default:
         return '';
     }
+  }
+
+  void _showSettingsDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => const TimetableSettingsDialog(),
+    );
+  }
+}
+
+class TimetableSettingsDialog extends ConsumerWidget {
+  const TimetableSettingsDialog({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(timetableSettingsProvider);
+    final notifier = ref.read(timetableSettingsProvider.notifier);
+
+    return AlertDialog(
+      title: const Text('Timetable Settings'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              const Text('Start Hour:'),
+              const Spacer(),
+              DropdownButton<int>(
+                value: settings.startHour,
+                items: List.generate(24, (index) => index).map((h) {
+                  return DropdownMenuItem(
+                    value: h,
+                    child: Text('$h:00'),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null && val < settings.endHour) {
+                    notifier.updateStartHour(val);
+                  }
+                },
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const Text('End Hour:'),
+              const Spacer(),
+              DropdownButton<int>(
+                value: settings.endHour,
+                items: List.generate(24, (index) => index).map((h) {
+                  return DropdownMenuItem(
+                    value: h,
+                    child: Text('$h:00'),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null && val > settings.startHour) {
+                    notifier.updateEndHour(val);
+                  }
+                },
+              ),
+            ],
+          ),
+          SwitchListTile(
+            title: const Text('Show Weekends'),
+            value: settings.showWeekends,
+            onChanged: (val) => notifier.toggleWeekends(val),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
+    );
   }
 }
 

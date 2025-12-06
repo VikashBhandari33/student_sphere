@@ -31,6 +31,24 @@ class WorkspaceController
     );
   }
 
+  Future<void> addMember(String workspaceId, String email) async {
+    final result = await _repository.addMember(workspaceId, email);
+    result.fold(
+      (failure) =>
+          state = AsyncValue.error(failure.message, StackTrace.current),
+      (_) {},
+    );
+  }
+
+  Future<void> removeMember(String workspaceId, String userId) async {
+    final result = await _repository.removeMember(workspaceId, userId);
+    result.fold(
+      (failure) =>
+          state = AsyncValue.error(failure.message, StackTrace.current),
+      (_) {},
+    );
+  }
+
   Future<void> deleteWorkspace(String id) async {
     final result = await _repository.deleteWorkspace(id);
     result.fold(

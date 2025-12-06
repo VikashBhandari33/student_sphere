@@ -7,8 +7,12 @@ import 'package:student_sphere/features/auth/presentation/register_screen.dart';
 import 'package:student_sphere/features/auth/presentation/forgot_password_screen.dart';
 import 'package:student_sphere/features/timetable/presentation/timetable_screen.dart';
 import 'package:student_sphere/features/timetable/presentation/add_class_screen.dart';
+import 'package:student_sphere/features/timetable/presentation/custom_table_list_screen.dart';
+import 'package:student_sphere/features/timetable/presentation/custom_table_view.dart';
+import 'package:student_sphere/features/workspace/presentation/workspace_chat_screen.dart';
 import 'package:student_sphere/features/attendance/presentation/attendance_screen.dart';
 import 'package:student_sphere/features/workspace/presentation/workspace_list_screen.dart';
+import 'package:student_sphere/features/workspace/presentation/workspace_detail_screen.dart';
 import 'package:student_sphere/features/notes/presentation/note_list_screen.dart';
 import 'package:student_sphere/features/notes/presentation/note_editor_screen.dart';
 import 'package:student_sphere/features/assignments/presentation/assignment_list_screen.dart';
@@ -17,6 +21,7 @@ import 'package:student_sphere/features/events/presentation/calendar_screen.dart
 import 'package:student_sphere/features/events/presentation/add_event_screen.dart';
 import 'package:student_sphere/features/settings/presentation/settings_screen.dart';
 import 'package:student_sphere/features/ai/presentation/gemini_chat_screen.dart';
+import 'package:student_sphere/features/notices/presentation/notice_segment.dart';
 
 // Home Screen
 class HomeScreen extends ConsumerWidget {
@@ -43,47 +48,59 @@ class HomeScreen extends ConsumerWidget {
         icon: const Icon(Icons.auto_awesome),
         label: const Text('Ask AI'),
       ),
-      body: GridView.count(
-        crossAxisCount: 2,
-        padding: const EdgeInsets.all(16),
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        children: [
-          _HomeCard(
-            icon: Icons.calendar_today,
-            title: 'Timetable',
-            color: Colors.blue,
-            onTap: () => context.go('/home/timetable'),
+      body: CustomScrollView(
+        slivers: [
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: NoticeSegment(),
+            ),
           ),
-          _HomeCard(
-            icon: Icons.check_circle_outline,
-            title: 'Attendance',
-            color: Colors.green,
-            onTap: () => context.go('/home/attendance'),
-          ),
-          _HomeCard(
-            icon: Icons.group_work,
-            title: 'Workspaces',
-            color: Colors.orange,
-            onTap: () => context.go('/home/workspaces'),
-          ),
-          _HomeCard(
-            icon: Icons.assignment,
-            title: 'Assignments',
-            color: Colors.red,
-            onTap: () => context.go('/home/assignments'),
-          ),
-          _HomeCard(
-            icon: Icons.note,
-            title: 'Notes',
-            color: Colors.purple,
-            onTap: () => context.go('/home/notes'),
-          ),
-          _HomeCard(
-            icon: Icons.event,
-            title: 'Calendar',
-            color: Colors.teal,
-            onTap: () => context.go('/home/calendar'),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverGrid.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              children: [
+                _HomeCard(
+                  icon: Icons.calendar_today,
+                  title: 'Timetable',
+                  color: Colors.blue,
+                  onTap: () => context.go('/home/timetable'),
+                ),
+                _HomeCard(
+                  icon: Icons.check_circle_outline,
+                  title: 'Attendance',
+                  color: Colors.green,
+                  onTap: () => context.go('/home/attendance'),
+                ),
+                _HomeCard(
+                  icon: Icons.group_work,
+                  title: 'Workspaces',
+                  color: Colors.orange,
+                  onTap: () => context.go('/home/workspaces'),
+                ),
+                _HomeCard(
+                  icon: Icons.assignment,
+                  title: 'Assignments',
+                  color: Colors.red,
+                  onTap: () => context.go('/home/assignments'),
+                ),
+                _HomeCard(
+                  icon: Icons.note,
+                  title: 'Notes',
+                  color: Colors.purple,
+                  onTap: () => context.go('/home/notes'),
+                ),
+                _HomeCard(
+                  icon: Icons.event,
+                  title: 'Calendar',
+                  color: Colors.teal,
+                  onTap: () => context.go('/home/calendar'),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -180,6 +197,18 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: 'add',
                 builder: (context, state) => const AddClassScreen(),
               ),
+              GoRoute(
+                path: 'tables',
+                builder: (context, state) => const CustomTableListScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':tableId',
+                    builder: (context, state) => CustomTableView(
+                      tableId: state.pathParameters['tableId']!,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           GoRoute(
@@ -189,6 +218,27 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'workspaces',
             builder: (context, state) => const WorkspaceListScreen(),
+            routes: [
+              GoRoute(
+                path: ':workspaceId',
+                builder: (context, state) => WorkspaceDetailScreen(
+                  workspaceId: state.pathParameters['workspaceId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'chat',
+                    builder: (context, state) {
+                      final workspaceId = state.pathParameters['workspaceId']!;
+                      final workspaceName = state.extra as String;
+                      return WorkspaceChatScreen(
+                        workspaceId: workspaceId,
+                        workspaceName: workspaceName,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
           GoRoute(
             path: 'notes',
@@ -197,6 +247,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'add',
                 builder: (context, state) => const NoteEditorScreen(),
+              ),
+              GoRoute(
+                path: ':noteId',
+                builder: (context, state) => NoteEditorScreen(
+                  noteId: state.pathParameters['noteId'],
+                ),
               ),
             ],
           ),

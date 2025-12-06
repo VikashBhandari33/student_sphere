@@ -8,9 +8,15 @@ import 'package:student_sphere/features/auth/domain/user_entity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:student_sphere/core/providers/google_sign_in_provider.dart';
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
-    AuthRemoteDataSourceImpl(FirebaseAuth.instance, FirebaseFirestore.instance),
+    AuthRemoteDataSourceImpl(
+      FirebaseAuth.instance,
+      FirebaseFirestore.instance,
+      ref.watch(googleSignInProvider),
+    ),
   );
 });
 
@@ -81,8 +87,12 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> signInWithGoogle() {
-    // TODO: Implement Google Sign In
-    throw UnimplementedError();
+  Future<Either<Failure, UserEntity>> signInWithGoogle() async {
+    try {
+      final user = await _remoteDataSource.signInWithGoogle();
+      return Right(user);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
   }
 }

@@ -23,6 +23,7 @@ class GeminiService {
   final String apiKey;
   final Ref ref;
   late final GenerativeModel _model;
+  late final GenerativeModel _textModel;
   late final ChatSession _chat;
 
   GeminiService(this.apiKey, this.ref) {
@@ -112,6 +113,13 @@ class GeminiService {
       apiKey: apiKey,
       tools: tools,
     );
+
+    _textModel = GenerativeModel(
+      model: 'gemini-2.5-flash',
+      apiKey: apiKey,
+      // No tools for pure text generation
+    );
+
     _chat = _model.startChat();
   }
 
@@ -136,6 +144,36 @@ class GeminiService {
     } catch (e) {
       logger.e('Gemini Error: $e');
       return 'Sorry, I encountered an error: $e';
+    }
+  }
+
+  Future<String> summarizeContent(String content) async {
+    try {
+      final prompt =
+          'Summarize the following important information, dates, and assignments from emails and classroom announcements into a concise notice segment:\n\n$content';
+      logger.d(
+          'GeminiService: Sending prompt to Gemini (Length: ${prompt.length})');
+      final response = await _textModel.generateContent([Content.text(prompt)]);
+      logger.d('GeminiService: Received response: ${response.text}');
+      return response.text ?? 'No summary available.';
+    } catch (e) {
+      logger.e('Gemini Summary Error: $e');
+      return 'Failed to generate summary.';
+    }
+  }
+
+  Future<String> generateNoteContent(String prompt) async {
+    try {
+      final fullPrompt =
+          'Generate a comprehensive and detailed note based on the following topic. Include key points, explanations, and examples where appropriate. Ensure the content is well-structured with headings if necessary. Topic:\n\n$prompt';
+      logger.d('GeminiService: Generating note content for prompt: $prompt');
+      final response =
+          await _textModel.generateContent([Content.text(fullPrompt)]);
+      logger.d('GeminiService: Received note content response');
+      return response.text ?? 'No content generated.';
+    } catch (e) {
+      logger.e('Gemini Note Generation Error: $e');
+      return 'Failed to generate content.';
     }
   }
 

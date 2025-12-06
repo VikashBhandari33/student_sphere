@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "149022161898",
+    "firebase_url": "https://student-sphere-7e3a3-default-rtdb.firebaseio.com",
     "project_id": "student-sphere-7e3a3",
     "storage_bucket": "student-sphere-7e3a3.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.student_sphere"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "149022161898-si7na8ibigr8kvuhl27gae38s06vh1oj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.student_sphere",
+            "certificate_hash": "758d1afc3dfb2cd71a866f04b5487fbd58286468"
+          }
+        },
+        {
+          "client_id": "149022161898-6lufss7v5adnc5u527cj8760arv1hgns.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyApTD13OabWJdrGSPXqKbo9ZAoZJYocEs4"
@@ -20,7 +34,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "149022161898-6lufss7v5adnc5u527cj8760arv1hgns.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "149022161898-k6adfea29cq9855hbctn3scknos73drd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.studentSphere"
+              }
+            }
+          ]
         }
       }
     }

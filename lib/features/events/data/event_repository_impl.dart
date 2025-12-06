@@ -6,15 +6,22 @@ import 'package:student_sphere/core/errors/failure.dart';
 import 'package:student_sphere/features/events/domain/event_entity.dart';
 import 'package:student_sphere/features/events/domain/event_repository.dart';
 
+import 'package:student_sphere/features/events/data/google_calendar_service.dart';
+
 final eventRepositoryProvider = Provider<EventRepository>((ref) {
-  return EventRepositoryImpl(FirebaseFirestore.instance, FirebaseAuth.instance);
+  return EventRepositoryImpl(
+    FirebaseFirestore.instance,
+    FirebaseAuth.instance,
+    ref.watch(googleCalendarServiceProvider),
+  );
 });
 
 class EventRepositoryImpl implements EventRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final GoogleCalendarService _googleCalendarService;
 
-  EventRepositoryImpl(this._firestore, this._auth);
+  EventRepositoryImpl(this._firestore, this._auth, this._googleCalendarService);
 
   String get _userId => _auth.currentUser!.uid;
 
@@ -25,6 +32,7 @@ class EventRepositoryImpl implements EventRepository {
   Future<Either<Failure, void>> addEvent(EventEntity event) async {
     try {
       await _eventsCollection.doc(event.id).set(event.toJson());
+      await _googleCalendarService.insertEvent(event);
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -43,10 +51,24 @@ class EventRepositoryImpl implements EventRepository {
 
   @override
   Stream<List<EventEntity>> getEvents() {
-    return _eventsCollection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
+    return _eventsCollection.snapshots().asyncMap((snapshot) async {
+      final firestoreEvents = snapshot.docs.map((doc) {
         return EventEntity.fromJson(doc.data() as Map<String, dynamic>);
       }).toList();
+
+      try {
+        // Fetch Google Calendar events for a reasonable range (e.g., current month +/- 2 months)
+        // For simplicity, let's fetch +/- 6 months from now
+        final now = DateTime.now();
+        final start = now.subtract(const Duration(days: 180));
+        final end = now.add(const Duration(days: 180));
+
+        final googleEvents = await _googleCalendarService.getEvents(start, end);
+        return [...firestoreEvents, ...googleEvents];
+      } catch (e) {
+        // If Google fetch fails, just return Firestore events
+        return firestoreEvents;
+      }
     });
   }
 }

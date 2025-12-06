@@ -53,8 +53,7 @@ class _NoteCard extends StatelessWidget {
     return Card(
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to Edit Note
-          // context.go('/home/notes/${note.id}');
+          context.go('/home/notes/${note.id}');
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

@@ -54,4 +54,14 @@ class AuthController extends StateNotifier<AsyncValue<UserEntity?>> {
     // We don't change state here as it's a side effect
     await _authRepository.resetPassword(email);
   }
+
+  Future<void> signInWithGoogle() async {
+    state = const AsyncValue.loading();
+    final result = await _authRepository.signInWithGoogle();
+    result.fold(
+      (failure) =>
+          state = AsyncValue.error(failure.message, StackTrace.current),
+      (user) => state = AsyncValue.data(user),
+    );
+  }
 }

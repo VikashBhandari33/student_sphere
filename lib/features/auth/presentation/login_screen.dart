@@ -115,6 +115,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       : const Text('Login'),
                 ),
                 const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: authState.isLoading
+                      ? null
+                      : () {
+                          ref
+                              .read(authControllerProvider.notifier)
+                              .signInWithGoogle();
+                        },
+                  icon: const Icon(Icons.login),
+                  label: const Text('Sign in with Google'),
+                ),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

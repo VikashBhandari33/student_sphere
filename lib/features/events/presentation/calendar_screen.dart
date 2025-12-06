@@ -27,8 +27,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       body: eventState.when(
         data: (events) {
           final eventsByDay = _groupEventsByDay(events);
-          final selectedEvents =
-              _selectedDay != null ? eventsByDay[_selectedDay!] ?? [] : [];
+          final normalizedSelectedDay = _selectedDay != null
+              ? DateTime(
+                  _selectedDay!.year, _selectedDay!.month, _selectedDay!.day)
+              : DateTime(_focusedDay.year, _focusedDay.month, _focusedDay.day);
+          final selectedEvents = eventsByDay[normalizedSelectedDay] ?? [];
 
           return Column(
             children: [
@@ -56,26 +59,73 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: ListView.builder(
-                  itemCount: selectedEvents.length,
-                  itemBuilder: (context, index) {
-                    final event = selectedEvents[index];
-                    return ListTile(
-                      leading:
-                          CircleAvatar(backgroundColor: Color(event.color)),
-                      title: Text(event.title),
-                      subtitle: Text(event.category),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () {
-                          ref
-                              .read(eventControllerProvider.notifier)
-                              .deleteEvent(event.id);
+                child: selectedEvents.isEmpty
+                    ? const Center(child: Text('No events for this day'))
+                    : ListView.builder(
+                        itemCount: selectedEvents.length,
+                        itemBuilder: (context, index) {
+                          final event = selectedEvents[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 8.0, vertical: 4.0),
+                            child: ListTile(
+                              onTap: () {
+                                debugPrint('Event tapped: ${event.title}');
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text(event.title),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Category: ${event.category}',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                            'Date: ${event.date.toString().split(' ')[0]}'),
+                                        const SizedBox(height: 8),
+                                        Text('Description:',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                        Text(event.description.isNotEmpty
+                                            ? event.description
+                                            : 'No description'),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Close'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              leading: CircleAvatar(
+                                  backgroundColor: Color(event.color)),
+                              title: Text(
+                                event.title,
+                                style: const TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255), // Ensure visibility
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(event.category),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () {
+                                  ref
+                                      .read(eventControllerProvider.notifier)
+                                      .deleteEvent(event.id);
+                                },
+                              ),
+                            ),
+                          );
                         },
                       ),
-                    );
-                  },
-                ),
               ),
             ],
           );
