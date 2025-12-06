@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is accessing their own data
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User Data & Subcollections (Classes, Subjects, Notes, Assignments, Events)
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /classes/{classId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /subjects/{subjectId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /notes/{noteId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /assignments/{assignmentId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /events/{eventId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Workspaces (Root level collection)
+    match /workspaces/{workspaceId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated() && (request.auth.uid in resource.data.memberIds);
+      allow update: if isAuthenticated() && (request.auth.uid in resource.data.editorIds);
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.ownerId);
+    }
+  }
+}
